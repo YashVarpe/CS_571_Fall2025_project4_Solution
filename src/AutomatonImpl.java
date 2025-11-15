@@ -98,5 +98,4 @@ public class AutomatonImpl implements Automaton {
         }
         return false;
     }
-
 }

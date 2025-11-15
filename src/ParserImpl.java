@@ -15,11 +15,12 @@ public class ParserImpl extends Parser {
      */
     @Override
     public Expr do_parse() throws Exception {
-        // Assuming the token list is pre-filtered for whitespace.
-        // Start symbol is T.
+        //This is the main entry point for the parser
+        //We start parsing from the start symbol which is T
         Expr result = parseT();
         
-        // After parsing, we should be at the end of the token list.
+        //After parsing, we should be at the end of the token list
+        //If there are still tokens left, it ,means the input was invalid
         if (tokens != null) {
             throw new Exception("Expected end of input, but found token: " + tokens.elem.lexeme);
         }
@@ -27,56 +28,43 @@ public class ParserImpl extends Parser {
         return result;
     }
 
-    // T -> F AddOp T
-    // T -> F
+    //This handles addition and subtraction
     private Expr parseT() throws Exception {
-        // All rules start with F
         Expr e1 = parseF();
 
-        // Check if an AddOp follows
+        //Now we look at the next token to decide which rule to use
         if (tokens != null && (peek(TokenType.PLUS, 0) || peek(TokenType.MINUS, 0))) {
-            // Rule: T -> F AddOp T
             Token op = parseAddOp();
             Expr e2 = parseT(); // Recursive call for T
 
-            // Apply SDT rule
             if (op.ty == TokenType.PLUS) {
                 return new PlusExpr(e1, e2);
             } else {
                 return new MinusExpr(e1, e2);
             }
         }
-
-        // Rule: T -> F
         return e1;
     }
 
-    // F -> Lit MulOp F
-    // F -> Lit
+    //This handles multiplication and division
     private Expr parseF() throws Exception {
-        // All rules start with Lit
+        //All rules start with Lit
         Expr e1 = parseLit();
-
-        // Check if a MulOp follows
+        //Now we look at the next token to decide which rule to use
+        //We check the next token for a '*' or '/'
         if (tokens != null && (peek(TokenType.TIMES, 0) || peek(TokenType.DIV, 0))) {
-            // Rule: F -> Lit MulOp F
             Token op = parseMulOp();
-            Expr e2 = parseF(); // Recursive call for F
+            Expr e2 = parseF(); //Recursive call for F
 
-            // Apply SDT rule
+            //Apply SDT rule to build the expression tree
             if (op.ty == TokenType.TIMES) {
                 return new TimesExpr(e1, e2);
             } else {
                 return new DivExpr(e1, e2);
             }
         }
-        
-        // Rule: F -> Lit
         return e1;
     }
-
-    // Lit -> NUM
-    // Lit -> LPAREN T RPAREN
     private Expr parseLit() throws Exception {
         if (tokens == null) {
             throw new Exception("Unexpected end of input, expected NUM or LPAREN");
@@ -96,9 +84,6 @@ public class ParserImpl extends Parser {
             throw new Exception("Parsing error: expected NUM or LPAREN, found " + tokens.elem.ty);
         }
     }
-
-    // AddOp -> PLUS
-    // AddOp -> MINUS
     private Token parseAddOp() throws Exception {
         if (tokens == null) {
             throw new Exception("Unexpected end of input, expected PLUS or MINUS");
@@ -112,9 +97,6 @@ public class ParserImpl extends Parser {
             throw new Exception("Parsing error: expected PLUS or MINUS, found " + tokens.elem.ty);
         }
     }
-
-    // MulOp -> TIMES
-    // MulOp -> DIV
     private Token parseMulOp() throws Exception {
         if (tokens == null) {
             throw new Exception("Unexpected end of input, expected TIMES or DIV");
